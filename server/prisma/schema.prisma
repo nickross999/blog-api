@@ -30,14 +30,18 @@ model Post {
 }
 
 model Comment {
-  id        Int      @id @default(autoincrement())
+  id        Int       @id @default(autoincrement())
   authorId  Int
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  author    User     @relation(fields: [authorId], references: [id])
-  Post      Post?    @relation(fields: [postId], references: [id])
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  author    User      @relation(fields: [authorId], references: [id])
+  Post      Post?     @relation(fields: [postId], references: [id])
   postId    Int?
   content   String
+  parentId  Int?
+  parent    Comment?  @relation("CommentToParent", fields: [parentId], references: [id])
+  children  Comment[] @relation("CommentToParent")
+  isDeleted Boolean   @default(false)
 }
 
 enum Role {

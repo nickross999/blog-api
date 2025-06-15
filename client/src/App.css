@@ -1,0 +1,33 @@
+html, body {
+    height: 100%;
+}
+
+body {
+    margin: 0;
+}
+
+#root {
+    height: 100%;
+    display: grid;
+    grid-template-areas: 
+        "header header"
+        "content sidebar";
+    grid-template-rows: 100px 1fr;
+    grid-template-columns: 1fr 300px;
+}
+
+.header {
+    background-color: lightcoral;
+    grid-area: header;
+}
+
+.sidebar {
+    background-color: skyblue;
+    grid-area: sidebar;
+}
+
+.content {
+    background-color: lightgreen;
+    grid-area: content;
+    padding: 10px;
+}
