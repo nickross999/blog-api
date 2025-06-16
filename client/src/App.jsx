@@ -5,6 +5,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import Post from "./pages/Post";
 import Login from "./pages/Login";
+import Logout from "./pages/Logout";
 
 function App() {
   const [posts, setPosts] = useState([]);
@@ -21,8 +22,19 @@ function App() {
       setUserInfo(response.data.user);
     };
     fetchUserInfo();
-  }),
-    [];
+  }, []);
+
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const response = await axios.get("http://localhost:3000/posts");
+        setPosts(response.data.posts);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+    fetchPosts();
+  }, []);
 
   return (
     <>
@@ -40,7 +52,24 @@ function App() {
           <a href="/logout">Sign out</a>
         )}
       </div>
-      <div className="sidebar"></div>
+      <div className="sidebar">
+        <ul className="post-list">
+          {posts.map((post) => {
+            return (
+              <li key={post.id}>
+                <span className="sidebar-post-date">
+                  {new Date(post.createdAt).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "short",
+                    day: "2-digit",
+                  })}
+                </span>
+                <a href={`/post/${post.id}`}>{post.title}</a>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
       <div className="content">
         <BrowserRouter>
           <Routes>
@@ -62,6 +91,7 @@ function App() {
               }
             />
             <Route path="/login" element={<Login />} />
+            <Route path="/logout" element={<Logout />} />
           </Routes>
         </BrowserRouter>
       </div>

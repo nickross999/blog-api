@@ -83,7 +83,8 @@ app.get("/", async function (req, res) {
   });
 });
 
-app.get("/user",
+app.get(
+  "/user",
   passport.authenticate("jwt", { session: false }),
   async (req, res) => {
     const user = await prisma.user.findUnique({
@@ -92,16 +93,16 @@ app.get("/user",
         id: true,
         email: true,
         name: true,
-      }
+      },
     });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
     return res.json({
-      user: user
-    })
+      user: user,
+    });
   }
-)
+);
 
 app.get("/posts/:id", optionalAuth, async (req, res) => {
   const postId = parseInt(req.params.id);
@@ -132,10 +133,15 @@ app.get("/posts/:id", optionalAuth, async (req, res) => {
           updatedAt: true,
           author: {
             select: {
-              name: true
-            }
-          }
-        }
+              name: true,
+            },
+          },
+          _count: {
+            select: {
+              children: true,
+            },
+          },
+        },
       },
     },
   });
@@ -183,6 +189,17 @@ app.post(
   }
 );
 
+app.get("/posts", async (req, res) => {
+  const posts = await prisma.post.findMany({
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+  res.json({
+    posts,
+  });
+});
+
 app.post(
   "/posts/:id/comments",
   passport.authenticate("jwt", { session: false }),
@@ -198,7 +215,6 @@ app.post(
       if (!postExists) {
         return res.status(404).json({ message: "Post not found" });
       }
-      console.log("post exists");
       const comment = {
         content: req.body.content,
         parentId: req.body.parentId || null,
@@ -224,6 +240,63 @@ app.post(
     }
   }
 );
+
+app.get("/posts/:id/comments", async (req, res) => {
+  //get only comments for a post
+  const comments = await prisma.comment.findMany({
+    where: {
+      postId: parseInt(req.params.id),
+      parentId: null,
+    },
+    select: {
+      id: true,
+      content: true,
+      createdAt: true,
+      updatedAt: true,
+      author: {
+        select: {
+          name: true,
+        },
+      },
+      _count: {
+        select: {
+          children: true,
+        },
+      },
+    },
+  });
+
+  res.json({
+    comments,
+  });
+});
+
+app.get("/comments/:id/children", async (req, res) => {
+  const children = await prisma.comment.findMany({
+    where: {
+      parentId: parseInt(req.params.id),
+    },
+    select: {
+      id: true,
+      content: true,
+      createdAt: true,
+      updatedAt: true,
+      author: {
+        select: {
+          name: true,
+        },
+      },
+      _count: {
+        select: {
+          children: true,
+        },
+      },
+    },
+  });
+  res.json({
+    children,
+  });
+});
 
 app.listen(process.env.PORT, () =>
   console.log(`Server is listening on port ${process.env.PORT}`)
